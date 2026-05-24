@@ -1,13 +1,21 @@
 import React from 'react'
 import ArabicWord from './ArabicWord.jsx'
 
-export default function Sentence({ block, settings, index }) {
+export default function Sentence({
+  block,
+  settings,
+  blockIndex,
+  currentSection,
+  onWordClick,
+  isWordInBank,
+}) {
   const isList = block.type === 'list_item'
   const showAnything = settings.arabic || settings.translation
   if (!showAnything) return null
 
   return (
     <article
+      data-block-index={blockIndex}
       className={[
         'group relative my-6 rounded-xl border border-transparent p-4 md:p-6',
         'hover:border-slate-200 dark:hover:border-slate-800 transition-colors',
@@ -36,6 +44,24 @@ export default function Sentence({ block, settings, index }) {
               en={w.en}
               showWbw={settings.wbw}
               showIraab={settings.iraab}
+              blockIndex={blockIndex}
+              wordIndex={i}
+              inBank={
+                isWordInBank ? isWordInBank(blockIndex, i) : false
+              }
+              onClick={(evt) =>
+                onWordClick &&
+                onWordClick(
+                  {
+                    ar: w.ar,
+                    en: w.en,
+                    blockIndex,
+                    wordIndex: i,
+                    section: currentSection,
+                  },
+                  evt,
+                )
+              }
             />
           ))}
         </div>

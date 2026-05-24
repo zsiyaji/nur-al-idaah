@@ -37,8 +37,22 @@ function GearIcon(props) {
     </svg>
   )
 }
+function BookmarkIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  )
+}
 
-export default function Toolbar({ settings, toggle, reset, sections = [] }) {
+export default function Toolbar({
+  settings,
+  toggle,
+  reset,
+  sections = [],
+  bankCount = 0,
+  onOpenBank,
+}) {
   const [open, setOpen] = useState(false)
   const [secOpen, setSecOpen] = useState(false)
   const popRef = useRef(null)
@@ -75,7 +89,7 @@ export default function Toolbar({ settings, toggle, reset, sections = [] }) {
   }
 
   return (
-    <div className="sticky top-0 z-30 backdrop-blur bg-white/80 dark:bg-ink-900/80 border-b border-slate-200 dark:border-slate-800">
+    <div data-toolbar className="sticky top-0 z-30 backdrop-blur bg-white/80 dark:bg-ink-900/80 border-b border-slate-200 dark:border-slate-800">
       <div className="max-w-prose mx-auto px-4 py-3 flex items-center justify-between gap-3">
         <div className="flex items-baseline gap-3 min-w-0">
           <h1 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 truncate">
@@ -145,6 +159,22 @@ export default function Toolbar({ settings, toggle, reset, sections = [] }) {
               )}
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={onOpenBank}
+            className="relative inline-flex items-center gap-2 h-9 px-3 rounded-md text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label={`Open word bank (${bankCount} saved)`}
+            title="Word bank"
+          >
+            <BookmarkIcon />
+            <span className="hidden sm:inline">Bank</span>
+            {bankCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-emerald-700 text-white text-[11px] font-semibold">
+                {bankCount}
+              </span>
+            )}
+          </button>
 
           <button
             type="button"
