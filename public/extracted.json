@@ -4815,7 +4815,7 @@
               "en": "and covers"
             },
             {
-              "ar": "ٱلْأَنْمَلَةَ",
+              "ar": "ٱلْأُنْمُلَةَ",
               "en": "the fingertip"
             },
             {
@@ -5166,7 +5166,7 @@
               "en": "even"
             },
             {
-              "ar": "بِغَرْفَةٍ",
+              "ar": "بِغُرْفَةٍ",
               "en": "with one handful"
             }
           ],
@@ -5184,10 +5184,10 @@
               "ar": "بِثَلَاثِ",
               "en": "with three"
             },
-            {
-              "ar": "غَرَفَاتٍ",
-              "en": "handfuls"
-            }
+          {
+            "ar": "غُرُفَاتٍ",
+            "en": "handfuls"
+          }
           ],
           "translation": "[5] Sniffing water into the nose with three handfuls,"
         }
