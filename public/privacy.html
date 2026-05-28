@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy · Nūr al-Īḍāḥ Reader</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+        max-width: 42rem;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+        line-height: 1.55;
+        color: #111827;
+        background: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        body { color: #e5e7eb; background: #0b1220; }
+        a { color: #6ee7b7; }
+      }
+      h1 { font-size: 1.75rem; margin: 0 0 0.5rem; }
+      h2 { font-size: 1.1rem; margin: 1.6rem 0 0.4rem; }
+      p, li { font-size: 0.95rem; }
+      code {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.85em;
+        background: rgba(125, 125, 125, 0.15);
+        padding: 0.05em 0.4em;
+        border-radius: 4px;
+      }
+      .meta {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin: 0 0 1.6rem;
+      }
+      a.back {
+        display: inline-block;
+        margin-top: 2rem;
+        text-decoration: none;
+        color: #047857;
+        font-weight: 500;
+      }
+      a.back:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <h1>Privacy</h1>
+    <p class="meta">Last updated: 2026-05-28</p>
+
+    <p>
+      The Nūr al-Īḍāḥ Reader is a static web app. There is no server-side
+      account system, no analytics, no advertising, and no third-party
+      tracking pixels. We do not have a backend; the entire app is shipped
+      as static files from GitHub Pages.
+    </p>
+
+    <h2>What we store on your device</h2>
+    <p>
+      The app uses your browser&rsquo;s <code>localStorage</code> to remember:
+    </p>
+    <ul>
+      <li>
+        <strong>Display preferences</strong> (Arabic on/off, word-by-word
+        translation, full translation, ḥarakāt, dark mode) under the key
+        <code>nai.settings.v1</code>.
+      </li>
+      <li>
+        <strong>Your word bank</strong> &mdash; the Arabic words you save
+        and their translations &mdash; under the key
+        <code>nai.wordbank.v2</code>.
+      </li>
+      <li>
+        If you sign in with Google, a small profile snapshot
+        (<code>name</code>, <code>email</code>, <code>picture</code>) under
+        <code>nai.google.profile.v1</code>, used solely to display the
+        signed-in state in the toolbar. <strong>Access tokens are never
+        written to disk</strong>; they only live in memory and disappear
+        when you close the tab.
+      </li>
+    </ul>
+    <p>
+      You can clear this data at any time via your browser&rsquo;s &ldquo;Clear
+      site data&rdquo; controls or by clicking <em>Clear all</em> in the
+      Word bank drawer.
+    </p>
+
+    <h2>Optional Google Drive sync</h2>
+    <p>
+      If you choose to sign in with Google, your word bank is written to a
+      hidden, app-only folder inside <em>your own</em> Google Drive (using
+      the <code>drive.appdata</code> scope). This folder is not visible in
+      the normal Drive UI and is accessible only to this application.
+    </p>
+    <ul>
+      <li>
+        We do not request access to any other files in your Drive.
+      </li>
+      <li>
+        We do not have a backend, so your data never passes through any
+        server we operate. It travels directly between your browser and
+        Google.
+      </li>
+      <li>
+        Revoking access at
+        <a href="https://myaccount.google.com/permissions">
+          myaccount.google.com/permissions
+        </a>
+        immediately stops the app from being able to read or write the
+        synced file.
+      </li>
+    </ul>
+
+    <h2>Network requests</h2>
+    <p>
+      The page itself fetches <code>extracted.json</code> (the corpus) from
+      the same origin as the site. Web fonts are loaded from
+      <code>fonts.googleapis.com</code> and <code>fonts.gstatic.com</code>.
+      If you opt in to Google sync, requests are made to
+      <code>accounts.google.com</code> (sign-in) and
+      <code>www.googleapis.com</code> (Drive). No other outbound requests
+      are made by the app.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      For corrections to this notice, please open an issue on the project
+      repository.
+    </p>
+
+    <a class="back" href="./">&larr; Back to the reader</a>
+  </body>
+</html>

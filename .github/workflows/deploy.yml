@@ -30,6 +30,11 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          # Optional: set this repo secret to enable the "Sign in with
+          # Google" / Drive AppData sync feature. If unset, the build
+          # silently ships an anonymous-only experience.
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
 
       - uses: actions/configure-pages@v5
 
