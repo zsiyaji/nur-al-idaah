@@ -35,9 +35,12 @@ export function captureBlockAnchor() {
 
 export function restoreBlockAnchor(anchor) {
   if (!anchor || typeof document === 'undefined') return
-  const el = document.querySelector(
-    `[data-block-index="${anchor.blockIndex}"]`,
-  )
+  // `anchor.blockIndex` is read from a real `data-block-index`
+  // attribute in `captureBlockAnchor`, so it's always a stringified
+  // integer. Still escaped for consistency with the rest of the
+  // codebase's selector hygiene.
+  const bi = CSS.escape(String(anchor.blockIndex))
+  const el = document.querySelector(`[data-block-index="${bi}"]`)
   if (!el) return
   const rect = el.getBoundingClientRect()
   const delta = rect.top - anchor.top

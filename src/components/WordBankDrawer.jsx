@@ -1,6 +1,10 @@
 import React, { useEffect } from 'react'
 import { stripHarakat } from '../lib/stripHarakat.js'
 import { downloadCSV, toCSV } from '../lib/csv.js'
+import {
+  downloadBlob,
+  exportEnvelopeAsJSON,
+} from '../lib/wordbankIO.js'
 
 function groupItemsByEn(items) {
   // Sub-group items within a word by translation, preserving order of
@@ -20,6 +24,8 @@ export default function WordBankDrawer({
   bank,
   showIraab,
   onJumpToSource,
+  auth,
+  googleConfigured = false,
 }) {
   useEffect(() => {
     if (!open) return
@@ -36,12 +42,18 @@ export default function WordBankDrawer({
     }
   }, [open, onClose])
 
-  const handleExport = () => {
+  const stamp = () => new Date().toISOString().slice(0, 10)
+
+  const handleExportCSV = () => {
     const headers = ['Arabic', 'Translation', 'Fasl']
     const rows = bank.csvRows.map((r) => [r.ar, r.en, r.fasl])
     const csv = toCSV(headers, rows)
-    const stamp = new Date().toISOString().slice(0, 10)
-    downloadCSV(`nur-al-idah-wordbank-${stamp}.csv`, csv)
+    downloadCSV(`nur-al-idah-wordbank-${stamp()}.csv`, csv)
+  }
+
+  const handleExportJSON = () => {
+    const blob = exportEnvelopeAsJSON(bank.envelope)
+    downloadBlob(`nur-al-idah-wordbank-${stamp()}.json`, blob)
   }
 
   const handleClear = () => {
@@ -51,6 +63,12 @@ export default function WordBankDrawer({
     )
     if (ok) bank.clearAll()
   }
+
+  // Disclosure / sync-state line shown at the bottom of the drawer
+  // header. Three states: anonymous (default), syncing, signed-in.
+  const isSignedIn = Boolean(auth?.isSignedIn)
+  const syncing = bank.syncStatus === 'syncing'
+  const syncErr = bank.syncStatus === 'error'
 
   return (
     <>
@@ -76,7 +94,7 @@ export default function WordBankDrawer({
           open ? 'translate-x-0' : 'translate-x-full',
         ].join(' ')}
       >
-        <header className="flex items-center justify-between gap-2 px-4 py-3 border-b border-slate-200 dark:border-slate-800">
+        <header className="flex items-start justify-between gap-2 px-4 py-3 border-b border-slate-200 dark:border-slate-800">
           <div className="min-w-0">
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               Word bank
@@ -86,21 +104,56 @@ export default function WordBankDrawer({
                 ? 'No words saved yet'
                 : `${bank.count} ${bank.count === 1 ? 'word' : 'words'} saved`}
             </p>
+
+            {/* Storage disclosure + sync state */}
+            <p className="mt-1 text-[11px] leading-snug text-slate-500 dark:text-slate-400">
+              {isSignedIn ? (
+                <>
+                  Synced to your Google Drive
+                  {syncing && <span className="ml-1 italic">· syncing…</span>}
+                  {syncErr && (
+                    <span className="ml-1 text-amber-600 dark:text-amber-400">
+                      · sync paused
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  Stored only in this browser.{' '}
+                  {googleConfigured && auth?.signIn && (
+                    <button
+                      type="button"
+                      onClick={auth.signIn}
+                      className="underline hover:text-emerald-700 dark:hover:text-emerald-400"
+                    >
+                      Sign in with Google to sync
+                    </button>
+                  )}
+                </>
+              )}
+            </p>
+
+            {bank.staleCount > 0 && (
+              <p className="mt-1 text-[11px] leading-snug text-amber-600 dark:text-amber-400">
+                {bank.staleCount} entr{bank.staleCount === 1 ? 'y' : 'ies'} from
+                an older version of the text — source links may be off.
+              </p>
+            )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close word bank"
-            className="h-9 w-9 inline-flex items-center justify-center rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             ×
           </button>
         </header>
 
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800">
           <button
             type="button"
-            onClick={handleExport}
+            onClick={handleExportCSV}
             disabled={bank.count === 0}
             className="inline-flex items-center gap-1 h-8 px-3 rounded-md text-sm font-medium bg-emerald-700 hover:bg-emerald-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -108,9 +161,18 @@ export default function WordBankDrawer({
           </button>
           <button
             type="button"
+            onClick={handleExportJSON}
+            disabled={bank.count === 0}
+            className="inline-flex items-center gap-1 h-8 px-3 rounded-md text-sm border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Download a JSON backup of your word bank"
+          >
+            Export JSON
+          </button>
+          <button
+            type="button"
             onClick={handleClear}
             disabled={bank.count === 0}
-            className="inline-flex items-center gap-1 h-8 px-3 rounded-md text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="ml-auto inline-flex items-center gap-1 h-8 px-3 rounded-md text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Clear all
           </button>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Toggle from './Toggle.jsx'
+import SyncButton from './SyncButton.jsx'
 import { stripHarakat } from '../lib/stripHarakat.js'
 
 function SunIcon(props) {
@@ -52,6 +53,8 @@ export default function Toolbar({
   sections = [],
   bankCount = 0,
   onOpenBank,
+  auth,
+  googleConfigured = false,
 }) {
   const [open, setOpen] = useState(false)
   const [secOpen, setSecOpen] = useState(false)
@@ -175,6 +178,10 @@ export default function Toolbar({
               </span>
             )}
           </button>
+
+          {auth && (
+            <SyncButton auth={auth} configured={googleConfigured} />
+          )}
 
           <button
             type="button"

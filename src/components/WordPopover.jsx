@@ -21,8 +21,13 @@ export default function WordPopover({
   // Position the popover near the anchor element, clamped to the viewport.
   useLayoutEffect(() => {
     if (!selection) return
+    // Indices are integers built from React tree state, but we still
+    // escape defensively in case a future caller passes through
+    // un-validated values.
+    const bi = CSS.escape(String(selection.blockIndex))
+    const wi = CSS.escape(String(selection.wordIndex))
     const anchor = document.querySelector(
-      `[data-block-index="${selection.blockIndex}"][data-word-index="${selection.wordIndex}"]`,
+      `[data-block-index="${bi}"][data-word-index="${wi}"]`,
     )
     if (!anchor) return
     const rect = anchor.getBoundingClientRect()
@@ -55,8 +60,10 @@ export default function WordPopover({
       if (popRef.current && !popRef.current.contains(e.target)) {
         // Don't immediately close if the click was on the anchor (so the
         // word's own click handler can act as a toggle).
+        const bi = CSS.escape(String(selection.blockIndex))
+        const wi = CSS.escape(String(selection.wordIndex))
         const anchor = document.querySelector(
-          `[data-block-index="${selection.blockIndex}"][data-word-index="${selection.wordIndex}"]`,
+          `[data-block-index="${bi}"][data-word-index="${wi}"]`,
         )
         if (anchor && anchor.contains(e.target)) return
         onClose()

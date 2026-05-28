@@ -14,6 +14,54 @@ A Quran.com-style reader for the extraction of *Nūr al-Īḍāḥ — Kitāb al
 All toggles are persisted in `localStorage` (key `nai.settings.v1`). A dark
 mode toggle is also provided.
 
+## Word bank
+
+Click any Arabic word to open a popover with its translation, then "Add to
+word bank". Saved words are grouped by section (fasl) in a side drawer, and
+each entry has a back-link that scrolls the reader to the source.
+
+The bank is stored in your browser's `localStorage` (key
+`nai.wordbank.v2`). You can also:
+
+- **Export CSV** — for spreadsheet / Anki import (UTF-8 with BOM).
+- **Export JSON** — read-only backup of the full envelope (entries +
+  tombstones + section context). Re-import is intentionally not
+  offered — see [Optional cross-device sync](#optional-cross-device-sync-google-drive)
+  for cross-browser portability.
+
+### Optional cross-device sync (Google Drive)
+
+If the build was given a `VITE_GOOGLE_CLIENT_ID`, a "Sign in" button
+appears in the toolbar. After signing in, the bank is synced to a hidden,
+app-only folder in **your own Google Drive** (`drive.appdata` scope) — no
+backend, no DB, no server we operate touches your data.
+
+To enable it:
+
+1. Create a Google Cloud project at
+   [console.cloud.google.com](https://console.cloud.google.com/).
+2. **APIs & Services → Library**: enable the "Google Drive API".
+3. **APIs & Services → OAuth consent screen**:
+   - User type: **External**.
+   - Add the scope `https://www.googleapis.com/auth/drive.appdata` (it
+     is *not* a sensitive scope, so verification is minimal).
+   - Add yourself as a test user while in "Testing" status, or submit
+     for verification to ship publicly.
+4. **APIs & Services → Credentials → Create credentials → OAuth client ID**:
+   - Application type: **Web application**.
+   - Authorized JavaScript origins: your production URL (e.g.
+     `https://<user>.github.io`) **and** `http://localhost:5173`.
+   - No redirect URIs are needed (we use the implicit token-client flow).
+5. Copy the generated **Client ID** (e.g. `123-abc.apps.googleusercontent.com`).
+6. **Locally**: create `.env.local` in the project root with
+   `VITE_GOOGLE_CLIENT_ID=123-abc.apps.googleusercontent.com`.
+7. **In CI**: add the same value as a GitHub repo secret named
+   `VITE_GOOGLE_CLIENT_ID`. The workflow at
+   `.github/workflows/deploy.yml` already forwards it to the build.
+
+If the env var is unset the app simply hides the sign-in button and
+runs anonymously.
+
 ## Run locally
 
 ```
