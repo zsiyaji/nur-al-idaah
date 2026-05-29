@@ -59,13 +59,25 @@ export default function Toolbar({
   const [open, setOpen] = useState(false)
   const [secOpen, setSecOpen] = useState(false)
   const popRef = useRef(null)
-  const secRef = useRef(null)
+  // The Sections menu is rendered as a sibling of its button (not
+  // inside the button's wrapper) so it can anchor to the toolbar's
+  // right edge and avoid overflowing the viewport on mobile. That
+  // means the outside-click check needs to consult both the button
+  // and the menu separately.
+  const secBtnRef = useRef(null)
+  const secMenuRef = useRef(null)
 
   useEffect(() => {
     if (!open && !secOpen) return
     const onClick = (e) => {
       if (open && popRef.current && !popRef.current.contains(e.target)) setOpen(false)
-      if (secOpen && secRef.current && !secRef.current.contains(e.target)) setSecOpen(false)
+      if (
+        secOpen &&
+        secBtnRef.current && !secBtnRef.current.contains(e.target) &&
+        (!secMenuRef.current || !secMenuRef.current.contains(e.target))
+      ) {
+        setSecOpen(false)
+      }
     }
     const onKey = (e) => {
       if (e.key === 'Escape') {
@@ -93,7 +105,7 @@ export default function Toolbar({
 
   return (
     <div data-toolbar className="sticky top-0 z-30 backdrop-blur bg-white/80 dark:bg-ink-900/80 border-b border-slate-200 dark:border-slate-800">
-      <div className="max-w-prose mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div className="max-w-prose mx-auto px-4 py-3 flex items-center justify-between gap-3 relative">
         <div className="flex items-baseline gap-3 min-w-0">
           <h1 className="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100 truncate">
             Nūr al-Īḍāḥ
@@ -105,62 +117,21 @@ export default function Toolbar({
 
         <div className="flex items-center gap-1">
           {sections.length > 0 && (
-            <div className="relative" ref={secRef}>
-              <button
-                type="button"
-                onClick={() => setSecOpen((v) => !v)}
-                className={[
-                  'inline-flex items-center gap-2 h-9 px-3 rounded-md text-sm',
-                  'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800',
-                  secOpen ? 'bg-slate-100 dark:bg-slate-800' : '',
-                ].join(' ')}
-                aria-expanded={secOpen}
-                aria-haspopup="listbox"
-              >
-                <ListIcon />
-                <span className="hidden sm:inline">Sections</span>
-              </button>
-
-              {secOpen && (
-                <div
-                  role="listbox"
-                  className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-ink-900 shadow-lg p-2"
-                >
-                  {sections.map((s) => {
-                    const ar = settings.iraab ? s.displayAr : stripHarakat(s.displayAr)
-                    const isChapter = s.kind === 'kitab' || s.kind === 'bab'
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => goTo(s.id)}
-                        className={[
-                          'w-full text-right px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800',
-                          isChapter ? 'mt-1' : '',
-                        ].join(' ')}
-                      >
-                        <span
-                          className={[
-                            'ar block leading-snug',
-                            isChapter
-                              ? 'text-lg font-bold text-emerald-800 dark:text-emerald-300'
-                              : 'text-base text-slate-800 dark:text-slate-100',
-                          ].join(' ')}
-                          dir="rtl"
-                        >
-                          {ar}
-                        </span>
-                        {settings.translation && s.en && (
-                          <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 text-left">
-                            {s.en}
-                          </span>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
+            <button
+              ref={secBtnRef}
+              type="button"
+              onClick={() => setSecOpen((v) => !v)}
+              className={[
+                'inline-flex items-center gap-2 h-9 px-3 rounded-md text-sm',
+                'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800',
+                secOpen ? 'bg-slate-100 dark:bg-slate-800' : '',
+              ].join(' ')}
+              aria-expanded={secOpen}
+              aria-haspopup="listbox"
+            >
+              <ListIcon />
+              <span className="hidden sm:inline">Sections</span>
+            </button>
           )}
 
           <button
@@ -212,7 +183,7 @@ export default function Toolbar({
             {open && (
               <div
                 role="dialog"
-                className="absolute right-0 mt-2 w-80 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-ink-900 shadow-lg p-4"
+                className="absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-ink-900 shadow-lg p-4"
               >
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Display settings</h3>
@@ -254,6 +225,51 @@ export default function Toolbar({
             )}
           </div>
         </div>
+
+        {/* Sections dropdown — anchored to the toolbar's right edge so
+            it stays inside the viewport on phones (the Sections button
+            sits in the middle of the button row, so anchoring there
+            would push the dropdown off the left side of the screen). */}
+        {sections.length > 0 && secOpen && (
+          <div
+            ref={secMenuRef}
+            role="listbox"
+            className="absolute right-4 top-full mt-1 w-[min(20rem,calc(100vw-2rem))] max-h-[70vh] overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-ink-900 shadow-lg p-2"
+          >
+            {sections.map((s) => {
+              const ar = settings.iraab ? s.displayAr : stripHarakat(s.displayAr)
+              const isChapter = s.kind === 'kitab' || s.kind === 'bab'
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => goTo(s.id)}
+                  className={[
+                    'w-full text-right px-3 py-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800',
+                    isChapter ? 'mt-1' : '',
+                  ].join(' ')}
+                >
+                  <span
+                    className={[
+                      'ar block leading-snug',
+                      isChapter
+                        ? 'text-lg font-bold text-emerald-800 dark:text-emerald-300'
+                        : 'text-base text-slate-800 dark:text-slate-100',
+                    ].join(' ')}
+                    dir="rtl"
+                  >
+                    {ar}
+                  </span>
+                  {settings.translation && s.en && (
+                    <span className="block text-xs text-slate-500 dark:text-slate-400 mt-0.5 text-left">
+                      {s.en}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
