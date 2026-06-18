@@ -14,6 +14,7 @@ import Toast from './components/Toast.jsx'
 import useSettings from './lib/useSettings.js'
 import useWordBank from './lib/useWordBank.js'
 import { buildSections } from './lib/sections.js'
+import { combineCorpus } from './lib/corpus.js'
 import { captureBlockAnchor, restoreBlockAnchor } from './lib/scrollAnchor.js'
 import { computeDataVersion } from './lib/dataVersion.js'
 import {
@@ -84,20 +85,38 @@ export default function App() {
   // --- data loading ---------------------------------------------------
   useEffect(() => {
     let cancelled = false
+    // The reader spans two books: Kitāb al-Ṭahārah (extracted.json) and
+    // Kitāb al-Ṣalāh (kitaab-al-salah.json). They are fetched together and
+    // stitched into one continuous corpus by `combineCorpus`.
+    //
     // `cache: 'no-store'` prevents stale in-flight reads after a corpus
     // refresh; combined with the SHA-based dataVersion below, the bank
     // can flag entries that point at a previous extraction.
-    fetch(`${import.meta.env.BASE_URL}extracted.json`, { cache: 'no-store' })
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`)
-        const text = await r.text()
-        const version = await computeDataVersion(text)
-        const json = JSON.parse(text)
-        return { json, version }
+    const fetchText = (file) =>
+      fetch(`${import.meta.env.BASE_URL}${file}`, { cache: 'no-store' }).then(
+        (r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status} (${file})`)
+          return r.text()
+        },
+      )
+
+    Promise.all([
+      fetchText('extracted.json'),
+      fetchText('kitaab-al-salah.json'),
+    ])
+      .then(async ([taharahText, salahText]) => {
+        // Version tracks both sources so bank entries are re-flagged if
+        // either book changes.
+        const version = await computeDataVersion(`${taharahText}\u0000${salahText}`)
+        const combined = combineCorpus(
+          JSON.parse(taharahText),
+          JSON.parse(salahText),
+        )
+        return { combined, version }
       })
-      .then(({ json, version }) => {
+      .then(({ combined, version }) => {
         if (cancelled) return
-        setData(json)
+        setData(combined)
         setDataVersion(version)
       })
       .catch((e) => {
@@ -269,7 +288,7 @@ export default function App() {
                 Nūr al-Īḍāḥ
               </h1>
               <p className="mt-1 text-base md:text-lg text-slate-600 dark:text-slate-400">
-                Kitāb al-Ṭahārah · The Book of Purification
+                Kitāb al-Ṭahārah &amp; Kitāb al-Ṣalāh · Purification &amp; Prayer
               </p>
             </header>
 

@@ -111,7 +111,7 @@ export default function Toolbar({
             Nūr al-Īḍāḥ
           </h1>
           <span className="text-xs md:text-sm text-slate-500 dark:text-slate-400 truncate">
-            Kitāb al-Ṭahārah
+            Kitāb al-Ṭahārah &amp; al-Ṣalāh
           </span>
         </div>
 
